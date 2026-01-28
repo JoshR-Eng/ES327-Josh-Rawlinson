@@ -1,0 +1,130 @@
+% Template:
+% Author - Chris Quinn 28/06/2020
+% 
+
+% This is the main .tex file
+% |
+% It defines the document formatting / style / imports
+% |
+% Each chapter sperated into folders for convenience
+% || chapt. are then imported into main doc.
+% || 
+
+
+
+
+
+    % CLASS 
+\documentclass[a4paper,fleqn,twoside,12pt]{article}
+
+    % MARGINS
+\usepackage[margin=25mm]{geometry}
+
+    % FONT
+\usepackage[scaled]{helvet}
+\renewcommand\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+
+    % SPACING   
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{amsmath} %For both in-line and equation mode
+\numberwithin{equation}{section} %Numbering equations per section
+\usepackage{algorithm}
+\usepackage{algorithmic} %Algorithm styles
+\usepackage{fancyhdr} %For our headers
+\usepackage{graphicx} %Inserting images
+\usepackage{setspace} %Spacing on the front page for crest and titles
+\usepackage[]{fncychap} % Styles can be Sonny, Lenny, Glenn, Conny, Rejne, Bjarne and Bjornstrup
+\usepackage[hyphens]{url} %Deals with hyphens in urls to make them clickable
+\usepackage{xcolor} %Great if you want coloured text
+\usepackage{tabularx}
+\usepackage{appendix} 
+
+
+
+%KEEP THIS ONE LAST it's quite buggy, it allows you to click on links within the pdf and web links without changing the colour. The mouse cursor simply changes its icon to indicate to the user. Great tool - still awkward
+\usepackage[hidelinks]{hyperref}
+
+
+
+%This will tell the compiler to do the header style, page and spacing between the header and text
+\fancyhf{}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.2pt}
+\fancyfoot[C]{\thepage}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% DOCUMENT STARTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%Lets begin the document, some chapters have examples in to give you an idea 
+\begin{document}
+
+
+
+
+%================================================
+%                                    FRONT MATTER
+%================================================
+    % Title
+\include{Report/00 Preamble/Frontpage}
+
+    % Start page numbering 
+\pagenumbering{roman}
+\lfoot{\centering \thepage}
+
+    % Import preamble
+
+\include{Report/00 Preamble/Contents}
+\include{Report/00 Preamble/Lists}
+\include{Report/00 Preamble/Acknowledgements}
+\include{Report/00 Preamble/Abstract}
+\include{Report/00 Preamble/Abbreviations}
+
+    % Save page count to continue in end matter
+\newcounter{frontmatterpage}
+\setcounter{frontmatterpage}{\value{page}}
+
+
+
+
+%================================================
+%                                       MAIN BODY
+%================================================
+
+% Page Numbering for main body (30 PAGE LIMIT)
+\pagenumbering{arabic}
+\lfoot{\centering \thepage}
+
+% Import Report Content
+\include{Report/01/Chapter1} % Introduction
+\include{Report/02/Chapter2} % Literature Review
+\include{Report/03/Chapter3} % Experimental Method
+\include{Report/04/Chapter4} % Results
+\include{Report/05/Chapter5} % Discussion and Analysis
+\include{Report/06/Chapter6} % Project Management
+\include{Report/07/Chapter7} % Ethical Awareness 
+\include{Report/08/Chapter8} % Conclusion & Future Work
+%\include{...}
+
+
+
+
+%================================================
+%                                     BACK MATTER
+%================================================
+    % Continue roman page counting 
+    % from front matter
+\pagenumbering{roman} 
+\setcounter{page}{\value{frontmatterpage}}
+
+    % Include bibliography & appendix
+\bibliographystyle{abbrv}
+\bibliography{bibliography}
+
+\include{Report/XX Appendices/Appendices}
+
+\end{document}
