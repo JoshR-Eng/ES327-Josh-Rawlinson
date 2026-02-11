@@ -15,13 +15,13 @@
 
 
     % CLASS 
-\documentclass[a4paper,fleqn,twoside,12pt]{article}
+\documentclass[a4paper,fleqn,twoside,11pt]{report}
 
     % MARGINS
 \usepackage[margin=25mm]{geometry}
 
     % FONT
-\usepackage[scaled]{helvet}
+\usepackage[scaled]{mathpazo}
 \renewcommand\familydefault{\sfdefault}
 \usepackage[T1]{fontenc}
 
@@ -41,6 +41,7 @@
 \usepackage{xcolor} %Great if you want coloured text
 \usepackage{tabularx}
 \usepackage{appendix} 
+\usepackage{enumitem}
 
 
 
@@ -78,11 +79,11 @@
 
     % Import preamble
 
-\include{Report/00 Preamble/Contents}
-\include{Report/00 Preamble/Lists}
-\include{Report/00 Preamble/Acknowledgements}
-\include{Report/00 Preamble/Abstract}
-\include{Report/00 Preamble/Abbreviations}
+\include{"Report/00 Front-Matter/Contents"}
+\include{"Report/00 Front-Matter/Lists"}
+\include{"Report/00 Front-Matter/Acknowledgements"}
+\include{"Report/00 Front-Matter/Abstract"}
+\include{"Report/00 Front-Matter/Abbreviations"}
 
     % Save page count to continue in end matter
 \newcounter{frontmatterpage}
@@ -100,9 +101,9 @@
 \lfoot{\centering \thepage}
 
 % Import Report Content
-\include{Report/01/Chapter1} % Introduction
-\include{Report/02/Chapter2} % Literature Review
-\include{Report/03/Chapter3} % Experimental Method
+\include{"Report/01 Introduction/Chapter1"} % Introduction
+\include{"Report/02 Literature Review/Chapter2"} % Literature Review
+\include{"Report/03 Methodology/Chapter3"} % Experimental Method
 \include{Report/04/Chapter4} % Results
 \include{Report/05/Chapter5} % Discussion and Analysis
 \include{Report/06/Chapter6} % Project Management
@@ -122,9 +123,8 @@
 \setcounter{page}{\value{frontmatterpage}}
 
     % Include bibliography & appendix
-\bibliographystyle{abbrv}
-\bibliography{bibliography}
 
-\include{Report/XX Appendices/Appendices}
+\include{"Report/XX Back-Matter/Bibliography"}
+\include{"Report/XX Back-Matter/Appendices"}
 
 \end{document}
