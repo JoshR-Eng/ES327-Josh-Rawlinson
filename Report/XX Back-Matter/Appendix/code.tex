@@ -1,0 +1,24 @@
+\chapter{Python Training Script}
+\label{app:code}
+
+This appendix contains the core training loop used for the LSTM model.
+
+% "language=Python" handles the syntax highlighting
+\begin{lstlisting}[language=Python, caption={LSTM Training Loop}]
+import torch
+import torch.nn as nn
+
+def train_model(model, train_loader):
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+    for epoch in range(100):
+        for inputs, targets in train_loader:
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            
+    print("Training Complete")
+\end{lstlisting}

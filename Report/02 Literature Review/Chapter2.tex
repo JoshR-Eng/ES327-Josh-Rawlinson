@@ -48,8 +48,8 @@
 %==============================================================
 \subsection{Distributing Cloud AI to the Edge}
 
-The present AI architecture is cloud-centric, global investments in large scale data centres now facilitates any end user to access virtually unlimited computational resources. However, these facilities are data and power intensive and introduce unacceptable latency and connectivity dependencies for real-time, safety critical systems such as BMS \cite{rosendo_distributed_2022}
-
+The traditional paradigm of Cloud-centric AI, while offering virtually unlimited computational resources, introduces unacceptable latency and connectivity dependencies for safety-critical systems - such as Battery Management \cite{rosendo_distributed_2022}. As discussed by Rosendo et al., the transmission of high-frequency data to a central server incurs significant bandwidth costs and privacy risks while the growing number of interconnected IoT devices elevates these concerns. Consequently, the industry is witnessing a migration towards "Edge Intelligence" where inference occurs directly at the source of the data. This shift, however, imposes strict constraints on the computational availability and resource consumption, necessitating a departure from general-purpose computing towards specialised, energy-efficient hardware architectures \cite{mao_green_2024}.
+However, as noted by Barbierato \& Gatti \cite{barbierato_toward_2024}, metrics are often limited to theoretical "Floating-Point Operations Per Second" (FLOPS) rather then empirical energy measurements. This abstracts away from critical hardware effects like memory traffic, data precision, power modes and SoC utilisation. 
 
 
 \subsection{TinyML to GPU-Class Edge Devices}
