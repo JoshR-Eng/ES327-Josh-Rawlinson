@@ -21,7 +21,7 @@
 \usepackage[margin=25mm]{geometry}
 
     % FONT
-\usepackage[scaled]{mathpazo}
+\usepackage{mathpazo}
 \renewcommand\familydefault{\sfdefault}
 \usepackage[T1]{fontenc}
 
@@ -40,8 +40,10 @@
 \usepackage[hyphens]{url} %Deals with hyphens in urls to make them clickable
 \usepackage{xcolor} %Great if you want coloured text
 \usepackage{tabularx}
-\usepackage{appendix} 
+\usepackage[toc,page]{appendix} 
 \usepackage{enumitem}
+\usepackage[style=ieee, backend=biber]{biblatex} % Bibliography
+\addbibresource{references.bib}                  % |
 
 
 
@@ -71,7 +73,7 @@
 %                                    FRONT MATTER
 %================================================
     % Title
-\include{Report/00 Preamble/Frontpage}
+\include{"Report/00 Front-Matter/Frontpage"}
 
     % Start page numbering 
 \pagenumbering{roman}
@@ -104,11 +106,11 @@
 \include{"Report/01 Introduction/Chapter1"} % Introduction
 \include{"Report/02 Literature Review/Chapter2"} % Literature Review
 \include{"Report/03 Methodology/Chapter3"} % Experimental Method
-\include{Report/04/Chapter4} % Results
-\include{Report/05/Chapter5} % Discussion and Analysis
-\include{Report/06/Chapter6} % Project Management
-\include{Report/07/Chapter7} % Ethical Awareness 
-\include{Report/08/Chapter8} % Conclusion & Future Work
+\include{"Report/04/Chapter4"} % Results
+\include{"Report/05/Chapter5"} % Discussion and Analysis
+\include{"Report/06/Chapter6"} % Project Management
+\include{"Report/07/Chapter7"} % Ethical Awareness 
+\include{"Report/08/Chapter8"} % Conclusion & Future Work
 %\include{...}
 
 
@@ -123,8 +125,7 @@
 \setcounter{page}{\value{frontmatterpage}}
 
     % Include bibliography & appendix
-
-\include{"Report/XX Back-Matter/Bibliography"}
-\include{"Report/XX Back-Matter/Appendices"}
+\include{Report/XX Back-Matter/Bibliography}
+\input{"Report/XX Back-Matter/Appendices"}
 
 \end{document}
