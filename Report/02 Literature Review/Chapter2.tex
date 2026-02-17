@@ -1,45 +1,88 @@
 % !TEX root =  ../Report.tex
 
 \chapter{Literature Review}
-\label{sec: Lit Review}
+\label{sec: Lit-Review}
 
 
 %==============================================================
 %                        section 1. 
 %        
-\section{Battery State Estimation: Tasks and Challenges}
+\section{The Sustainability Paradox of Battery State Estimation}
 %==============================================================
+The global transition towards sustainable energy and electrified transport fundamentally relies on the safe and efficient operation of batteries. At the core is the \ac{bms}, which must monitor and predict internal states, most significantly the \ac{soc} and \ac{soh}, to optimise energy utilisation, prolong life-cycle and prevent catastrophic failure \cite{kumar_advances_2023}.\\
+Historically, this has been achieved through classical filtering techniques. Recent performance analyses, such as those by Madhavi and Vairavasundaram \cite{madhavi_performance_2026}, demonstrate that while the \ac{kf} offer predictable, low-power \ac{soc} and \ac{soh} tracking, they rapidly lose precision when subjected to non-linear parameter variation and highly dependent on the accuracy off the underlying model. To combat this loss of precision, research has increasingly fused physics-based equations with data-driven neural networks. For instance, Cui et al. \cite{cui_hybrid_2022} proposed fusing neural networks with \ac{kf} for \ac{soh} tracking, while Yu et al. \cite{yu_state_2023} embedded simplified electrochemical models entirely within a \ac{dl} framework to capture complex internal dynamics. \\
+However, this pursuit of \ac{sota} predictive fidelity demands exponentially more computational power, memory bandwidth, and energy to train and execute \cite{salehi_data-centric_2024}. Deploying these heavily parametrised hybrid models onto the embedded processors of a vehicle or \ac{iot} device introduces severe latency bottlenecks, thermal throttling and significant energy consumption \cite{wang_cognitive_2025}. If the energy consumed by the \ac{bms} offsets the operational efficiency gain from the accuracy of its prediction model, the algorithm is fundamentally unviable for edge application. Therefore, bridging the gap between high-accuracy predictive models and low-power compute is a critical challenge in modern battery engineering.  
 
 
 %==============================================================
 %                       section 2. 
 %        
-\section{State-of-Charge \& State-of-Health Estimation}
+\section{State-of-Health Estimation: From Model-Based to Data-Driven}
 %==============================================================
-\subsection{Model-based Approach}
+Accurate \ac{soh} estimation is a critical function of advanced \ac{bms}. It ensures operational safety, extends battery lifespan and provides reliable range estimations \cite{kumar_advances_2023,haraz_state--health_2024}. Unlike \ac{soc}, which fluctuates rapidly with current load, \ac{soh} represents the irreversible ageing of the cell, indicated as capacity fade and internal resistance rise, occurring over macro-timescales \cite{seifoddini_comparative_2025, sui_review_2021}.\\
+The literature broadly categorises \ac{soh} estimation into two domains: model-based approaches, which rely on electrochemical or equivalent circuit representations, and data-driven which leverage \ac{ml} to learn degradation patterns directly from sensor data.
 
+    % 2.1
+\subsection{Model-Based Approaches: Efficiency vs. Fidelity}
+Historically, \ac{bms} solutions have favoured model-based techniques due to their interpretability and low computational footprint. These methods typically employ an \ac{ecm} coupled with an adaptive filter to estimate states and parameters. \\
+Recent comparative studies demonstrate that advanced \ac{kf} based methods, such as Dual Extended Kalman Filters \cite{seifoddini_comparative_2025} and Adaptive Dual \ac{ekf} \cite{xu_novel_2021}, can achieve \ac{soh} estimation errors within the $1-3\%$ range. By modelling ageing as a slowly varying parameter ( e.g. ohmic resistance), these filters enable real-time tracking of degradation. Barros et al. \cite{barros_adaptive_2025} validated that such \ac{ekf} implementations are lightweight enough to run on microcontrollers, the STM32, with strict memory constraints. \\
+However, the efficiency of these models is fundamentally dependent on the fidelity of the underlying physical model. Wang et al. \cite{wang_hierarchical_2023} and Yang et al. \cite{yang_parameter_2021} highlight that maintaining accuracy under dynamic operating conditions requires increasingly complex multi-RC branch models and sophisticated noise-adaptation logic (e.g. Sage-Husa estimators). Additionally, as batteries age, non-linear electrochemical behaviours introduce variation that can't be captured by rigid \ac{ecm} without continuous, computationally intensive parameter estimation \cite{fahmy_state_2024, xie_state_2023}. This trade-off between estimation efficiency and modelling complexity has driven the shift towards data-driven alternatives.
 
-\subsection{Machine-Learning Based Approach}
+    % 2.2
+\subsection{Data-Driven Approaches: Capturing Non-linear Degradation}
+To address the limitations of physics-based modelling, literature has pivoted towards \ac{dl} architectures capable of mapping raw voltage, current and temperature sequences directly to \ac{soh} metrics \cite{sui_review_2021, kumar_advances_2023}. \\
+\ac{rnn} and their variants, \ac{lstm} \cite{hochreiter_long_1997} and \ac{gru} \cite{cho_learning_2014}, have become the standard for this task due to their ability to capture long-term dependencies in time-series data. Lu et al. \cite{lu_battery_2022} demonstrated that a \ac{gru}-based framework could predict full degradation trajectories under uncertain future operating conditions using only early-life $Q(v)$ charging data, significantly outperforming traditional feature-engineering methods. \\
+The trend in the literature is towards increasingly complex architectures to validate marginal gains in accuracy. Xu et al. \cite{xu_lstm-based_2024} proposed enhancing \ac{lstm}'s with spatio-temporal attention mechanisms to separate long-term ageing trends from short-term fluctuations. Similarly, Zhang et al. \cite{zhang_lithium-ion_2025} introduced a hybrid model combining \ac{tcn}, \ac{gru}, and a Wavelet Neural Network optimised via genetic algorithms. While these complex hybrids achieve \ac{sota} performance, they scale parameter counts and training costs well beyond typical \ac{bms} hardware with no consideration for the cost of deployment and whether that exceeds the suggested benefit to battery efficiency.
 
-
-\subsection{Real-world Data and Operational Constraints}
+    % 2.3
+\subsection{Real-world Data and Deployment Complexities}
+A critical hurdle to the success of \ac{dl} in \ac{soh} estimation is its dependence on data quality and volume. Chen et al. \cite{chen_towards_2025} argue that real-world deployment faces severe "data heterogeneity", where in-practice data is subject to massive distribution shifts caused by varying uses cases and environmental temperatures. Domain adaptive techniques \cite{lu_deep_2023} show promise in bridging the gap between lab to field yet they add another layer of computational overhead. \\
+For example, the Oxford \cite{birkl_oxford_2017}, CALCE \cite{calce_battery_data} and HUST \cite{wang_pinn4soh_2024} are some of the most popular public benchmark datasets yet they all typically rely on fixed charge-discharge cycles or standard drive cycles within controlled lab conditions yet they do not fully capture the stochastic variation seen in field use. In contrast, Lu et al. \cite{lu_batt-predic_2022} design their dataset around uncertain future conditions, combining long-term cycling with randomised fast-charging and discharging profiles to emulate the variability seen in real application \cite{lu_battery_2022}. They argue that models trained only on fixed drive cycles or simple \ac{cccv} protocols tend to over-fit to those patterns and generalise poorly when the operating conditions change. In the dataset \cite{lu_battery_2022}, 77 nominally identical high-energy 18650 lithium-ion batteries are cycled with fixed or arbitrary uses current profiles. 22 batteries are cycled with fixed current profiles of charge current (1C, 2C, or 3C) and discharge current (1C, 2C, or 3C). 55 batteries are cycled with arbitrary uses profiles of charge current (obeys a uniform distribution among 1C, 2C, or 3C, and changes randomly every 5 cycles) and a specified discharge current (3C). Hence, for this work, Lu et al. is adopted as the benchmark.
 
 
 
 %==============================================================
 %                       section 3. 
 %         
-\section{Temporal Deep Learning Architectures}
+\section{Temporal Architectures for Sequence Modelling}
 %==============================================================
+
+    % 3.1
 \subsection{Machine Learning for Sequence Modelling}
+Battery degradation is an inherently cumulative process, a cell's current \ac{soh} being a function of its entire historical operation. Consequently, traditional feed-forward neural networks (e.g. standard Multi-Layer Perceptrons) as they assume inputs are independent of one another, failing to capture the temporal variations in charging and discharging cycles. \cite{sui_review_2021}. \\
+Sequence modelling addresses this by designing architectures that maintain an internal representation of time. By feeding sequential data, such as Voltage ($V$) and charge capacity ($Q$) \cite{lu_batt-predic_2022}, these models learn dynamic trends. As established in the literature, recurrent and convolutional architectures dominate this domain due to their ability to capture non-linear features over extended temporal windows \cite{kumar_advances_2023, haraz_state--health_2024}. \\
 
-
+    % 3.2
 \subsection{Recurrent Neural Networks}
+\ac{rnn}'s process sequential data by maintaining a hidden state that is recursively updated as new information arrives at each time step. While theoretically capable of mapping long sequences, pure \ac{rnn}'s are notoriously hindered by the vanishing gradient problem. As back-propagation calculates gradients back through time, the signal decays exponentially, causing the network to "forget" early-life battery cycles \cite{bai_empirical_2018}. To resolve this, gated recurrent architectures were developed.
+\subsubsection{Long Short-Term Memory (LSTM)}
+Introduced by Hochreiter and Schmidhuber \cite{hochreiter_long_1997}, the \ac{lstm} is designed to overcome vanishing gradients. It achieves this by introducing a cell state ($C_t$), that carrier long-term information across the sequence with minimal linear interactions. \\
+% [Add LSTM gate figures]
+As shown in [\textbf{ADD LSTM FIGURE}] the flow of information into and out of the cell state is strictly regulated by three non-linear gates:
+\begin{enumerate}
+    \item \textbf{Forget Gate:} Determines what information to discard from the previous cell state, outputting a value between 0 and 1 via a sigmoid ($\sigma$) function.
+    \item \textbf{Input Gate:} Decides what new information will be stored in the cell state.
+    \item \textbf{Output Gate:} Filters the cell state to produce the final hidden state ($h_t$) for the current time step.
+\end{enumerate}
+For \ac{soh} estimation, this gating mechanism is highly effective. As Xu et al. \cite{xu_lstm-based_2024}, LSTMs can distinctly isolate long-term ageing trends from short-term capacity regeneration phenomena. However, the four interconnected neural network layers within every \ac{lstm} cell can exponentially scale computational load with layer size, increasing memory footprint and inference latency on edge devices \cite{zhang_lithium-ion_2025}. \\
+\subsubsection{Gated Recurrent Unit (GRU)}
+To reduce computational burden of \ac{lstm}'s, Cho et al. \cite{cho_learning_2014} proposed the \ac{gru}. The \ac{gru} simplifies the \ac{lstm} architecture by merging the hidden state and cell state into a single vector, reducing the gating mechanism to just two components: an \textit{Update Gate} and a \textit{Reset Gate} [\textbf{ADD GRU FIGURE}].\\
+The update gate determines how much of past information passes along to the future, combining the roles of the \ac{lstm}'s forget and input gates. The reset gate determines how much information to forget. This architectural simplification reduces the total parameter count by $\approx 25\%$ relative to the \ac{lstm}. Lu at al. \cite{lu_batt-predic_2022} demonstrated that \ac{gru}s achieve comparable, sometimes superior, predictive accuracy to \ac{lstm}s for \ac{soh} trajectory forecasting, making them an ideal compromise for constrained edge platforms.
 
-
+    % 3.3
 \subsection{Convolutional and Temporal Convolution Networks}
-
-
+    % ||
+\subsubsection{Convolutional Neural Networks (CNN) for Time Series}
+While originally engineered for spatial image processing, 1D \ac{cnn}s are highly effective for sequence modelling. Rather than step-by-step sequential processing, a 1D \ac{cnn} slides trainable convolutional filters across the time-series to extract local temporal features, such as sharp voltage drops or resistance spikes \cite{zhao_battery_2025}.\\
+The primary advantage of \ac{cnn}s is weight sharing and translation invariance. They can automatically identify degradation indicators regardless of exactly when they occur in the charging cycle. Additionally, since convolutions do not depend on the hidden state of the previous time step, unlike \ac{rnn}s, they can be processed entirely in parallel. This makes \ac{cnn}s exceptionally well-suited for hardware acceleration on \ac{gpu} architectures equipped with dedicated Tensor Cores \cite{wang_empowering_2025} Often \ac{cnn} layers are used as front-end feature extractors feeding into an \ac{lstm} or \ac{gru} to combine parallel feature extraction with deep sequence memory \cite{sainath_convolutional_2015, zhang_lithium-ion_2025}.
+    % ||
+\subsubsection{Temporal Convolutional Networks (TCN)}
+Building on the strengths of \ac{cnn}s, the \ac{tcn} was formalised by Bai et al. \cite{bai_empirical_2018} as a dedicated convolutional architecture for sequence modelling. \ac{tcn}s differ from standard 1D \ac{cnn}s through two structural rules:
+\begin{enumerate}
+    \item \textbf{Causal Convolutions:} The architecture ensure no information is leaked from the future into the past, the output at time $t$ is convolved exclusively from elements at time $t$ or earlier.
+    \item \textbf{Dilated Convolutions:} To capture long-term battery ageing without requiring an exponentially deep network, \ac{tcn}s introduce a dilation factor ($d$). The filter skips inputs by a step size of $d$, allowing the observation of vast historical windows with a relatively small number of parameters.
+\end{enumerate}
+Zhang et al. \cite{zhang_lithium-ion_2025} successfully applied \ac{tcn}s to battery \ac{soh} estimation, noting their utility to map complex degradation scales. Studies \cite{bai_empirical_2018} show they frequently outperform traditional \ac{lstm}s across diverse sequence task while maintaining the massive parallelisation benefits of \ac{cnn}s. They avoid sequential bottlenecks of \ac{rnn}s, offering high-accuracy \ac{soh} estimation that scales efficiently on hardware capable of parallel processing. 
 
 %==============================================================
 %                       section 4. 
@@ -49,61 +92,35 @@
 
     % 4.1
 \subsection{Distributing Cloud AI to the Edge}
-    % |
 The conventional paradigm of Cloud-centric \ac{ai} relies heavily on centralised processing, while offering virtually unlimited compute, it introduces latency, bandwidth bottlenecks and transmission-energy overheads that are fundamentally infeasible for real-time, safety-critical \ac{iot} applications like \ac{bms} \cite{surianarayanan_survey_2023, rosendo_distributed_2022}. Consequently, the computing landscape is migrating towards an "Edge-to-Cloud Continuum" \cite{rosendo_distributed_2022}, pushing intelligence next to the data source to ensure microsecond-level responsiveness and data privacy \cite{gill_edge_2024, wang_empowering_2025}. \\
 % [Could put an image of Edge to Cloud computing continuum architecture]
 However, this decentralisation exposes a critical concern in sustainability. Historically, deep learning literature has prioritised "Red \ac{ai}" - an approach that chases \ac{sota} accuracy through exponentially larger models and datasets, resulting in computing demands that outpace Moore's Law \cite{salehi_data-centric_2024, barbierato_toward_2024}. Deploying these heavily parametrised, energy-intensive models to resource-constrained edge devices threatens to negate the energy efficiency the models are designed to achieve. \\
-This development has catalysed the concept of "Green \ac{ai}", which shifts the optimisation objective from pure accuracy maximisation to multi-objective sustainability \cite{philipo_sustainable_2025}. Barbierato and Gatti \cite{barbierato_toward_2024} argue that a Red vs. Green \ac{ai} trade-off is inevitable, suggesting that targetting a "good enough" accuracy with superior energy and latency metrics is a more rigorous engineering objective for edge application. In applications to batteries, recent studes by Kumar et al. \cite{kumar_towards_2025, kumar_towards_2026} validate this approach. By data-focused Green \ac{ai} techniques (e.g. algorithmic data filtering), they reduce \ac{soh} computaional time and energy consumption by over 60\% while preserving predictive fidelity. \\
+This development has catalysed the concept of "Green \ac{ai}", which shifts the optimisation objective from pure accuracy maximisation to multi-objective sustainability \cite{philipo_sustainable_2025}. Barbierato and Gatti \cite{barbierato_toward_2024} argue that a Red vs. Green \ac{ai} trade-off is inevitable, suggesting that targetting a "good enough" accuracy with superior energy and latency metrics is a more rigorous engineering objective for edge application. In applications to batteries, recent studies by Kumar et al. \cite{kumar_towards_2025, kumar_towards_2026} validate this approach. By data-focused Green \ac{ai} techniques (e.g. algorithmic data filtering), they reduce \ac{soh} computational time and energy consumption by over 60\% while preserving predictive fidelity. \\
 % [Could put image of "Red AI vs. Green AI computational cost trade off curve"]
 Yet, while works like Kumar et al. optimise the \textit{algorithmic} and \textit{data} components, a fundamental gap remains. Mao et al. \cite{mao_green_2024} explicitly warn that software-level benefits are heavily dictated by the underlying hardware execution. True "Green Edge \ac{ai}" requires extensive hardware-software co-design \cite{surianarayanan_survey_2023, mao_green_2024}. Therefore, evaluating the sustainability of \ac{soh} models requires empirical profiling of hardware-specific implementations rather than relying on abstract algorithmic performance.
 
 
-
-% Version 2.0
-% The conventional paradigm of Cloud-centric \ac{ai}, while offering virtually ulimited computational resources, introduces latency and connectivity dependencies unsuitable for safety-critical application \cite{rosendo_distributed_2022}. Such as \ac{bms}, the continuos transmission of high-frequency data to centralised servers incurs extensive bandwidth costs and privacy vulnerability. Consequently, there's a rapid migration towards the "Edge-to-Cloud Continuum" \cite{rosendo_distributed_2022}, where digital intelligence is decentralised and inference occurs directly on-device \cite{wang_empowering_2025, gill_edge_2024}. \\
-% As deep learning models continue to grow in complexity, their energy consumption threatens to offset the efficiency gains they are designed to provide \cite{philipo_sustainable_2025}. This has lead to the emergence of "Green \ac{ai}" \cite{mao_green_2024}, a re-thinking on AI to minimise the carbon footprint and energy expenditure of machine learning workloads. Within the battery domain
-
-
-
-% Version 1.0
-% The present paradigm of Cloud-centric \ac{ai}, while offering virtually unlimited computational resources, introduces latency and connectivity dependencies unsuitable for safety-critical applications such as \ac{bms} \cite{rosendo_distributed_2022}. As discussed by Rosendo et al., the continous transmission of high-frequency data to a central server incurs significant bandwidth costs and privacy risks - the growing number of interconnected IoT devices elevates these concerns. \\
-% Consequently, the industry is migrating towards "Edge Intelligence" where inference occurs directly at the source of the data. This shift, however, imposes strict constraints on the computational availability and resource consumption, necessitating a departure from general-purpose computing towards specialised, energy-efficient hardware architectures \cite{mao_green_2024}.\\
-% Crucially, as noted by Barbierato \& Gatti \cite{barbierato_toward_2024}, current literature often reports hardware efficiency using theoretical metrics ( e.g. \ac{flops}) rather then empirical energy measurements. This abstraction obscures critical physical effects such a memory bandwidth bottlenecks, quantisation noise, and static power overheads - factors which this research seeks to quantify explicitly
-
-
     % 4.2
 \subsection{TinyML to GPU-Class Edge Devices}
-    % |
-Achieving this empirical hardware-software co-design requires a deployment platform that balances energy constraints against the computational demands of \ac{dl} temporal modelling. The embedded hardware spectrum spans from ultra-low power ac{tinyml} microcontrollers to "GPU-class" edge accelerators \cite{wang_empowering_2025}. \\
+Achieving this empirical hardware-software co-design requires a deployment platform that balances energy constraints against the computational demands of \ac{dl} temporal modelling. The embedded hardware spectrum spans from ultra-low power \ac{tinyml} microcontrollers to "GPU-class" edge accelerators \cite{wang_empowering_2025}. \\
 At the lower end, \ac{tinyml} solutions, such as the \textit{TinyOL} framework deployed on ARM Cortex-M architecture \cite{ren_tinyol_2021}, operate within ultra-low power ($<0.1\si{\watt}$). While Kim and Ben-Othman \cite{kim_eco-friendly_2023} highlight the utility of low-resources devices, these scalar processing \ac{mcu} have limitations. They lack the parallel memory bandwidth for \ac{dl} temporal models and struggle with the complex, on-device adaptations required to combat battery concept drift over time \cite{ren_tinyol_2021}.\\
-Consequently, enabling multi-cell \ac{soh} estimation using modern 'Congnitive Edge Computing' architectures \cite{wang_empowering_2025} demands dedicated matrix-multiplication acceleration. Between lower-power \ac{mcu}'s and Cloud-class compute, the NVIDIA Jetson Orin Nano (4GB) emerges as the optimal compromise. Built on the NVIDIA Ampere \ac{soc} architecture, the Orin Nano integrates an ARM Cortex-A78AE \ac{cpu} with a 512-core \ac{gpu} and 16 dedicated Tensor Cores \cite{nvidia_orin_nano_datasheet}.\\
+Consequently, enabling multi-cell \ac{soh} estimation using modern 'Cognitive Edge Computing' architectures \cite{wang_empowering_2025} demands dedicated matrix-multiplication acceleration. Between lower-power \ac{mcu}'s and Cloud-class compute, the NVIDIA Jetson Orin Nano (4GB) emerges as the optimal compromise. Built on the NVIDIA Ampere \ac{soc} architecture, the Orin Nano integrates an ARM Cortex-A78AE \ac{cpu} with a 512-core \ac{gpu} and 16 dedicated Tensor Cores \cite{nvidia_orin_nano_datasheet}.\\
 % [Could add "Image of NVIDIA Jetson Orin Nano SoC hardware architecture diagram"]
 The Tensor Cores are explicitly designed to accelerate spare \ac{int8} precision formats, delivering up to 20 \ac{tops} of \ac{ai} performance \cite{nvidia_orin_nano_datasheet}. Additionally, the Jetson power architecture enables dynamic hardware constraints via the \texttt{nvpmodel} utility, allowing the module to be restricted to specific power modes (e.g. $5\si{\watt}$ to $10\si{\watt}$) by disabling cores and scaling clock frequencies \cite{noauthor_power_2023, noauthor_jetson-stats_nodate}. \\
-By deploying on this platform, the research shifts from theoretical estimates to physical measurement. The core objectives becomes identifying the optimal configuration for targetted hardware, adapting model architecture and power budgets to achieve "good enough" SOH accuracy at the lowest emperical energy cost.
-
-
-
-%        Version 1
-% The hardware landscape for edge intelligence spans a wide spectrum, from ultra-low power \ac{mcu} running \ac{tinyml} to high-performance 'GPU-equipped' accelerators \cite{wang_empowering_2025}. \\
-% \ac{tinyml} solutions, such as the online learning framework proposed by Ren et al. \cite{ren_tinyol_2021}, offer extreme energy efficiency, operating within a milliwatt power envelope ($\sim$ \si{\milli \watt} ). However these typically rely on sequential processing (e.g. ARM Cortex-M4) which severely limits their throughput. While sufficient for estimating the \ac{soc} of a single cell, they lack the parallel compute density required to process high-dimensional temporal data for a multi-cell battery pack, along with additional overheads, in real-time.\\
-% In contrast, the NVIDIA Jetson Orin series represents a 'High-Performance Edge' class designed to bridge this scalability gap. Built on the NVIDIA Ampere architecture, the Orin integrates specialised 'Tensor Cores' optimised for \ac{int8} matrix operations, delivering up to 40 \ac{tops} within a configurable \SI{5}{\watt}--\SI{15}{\watt} envelope (model dependant) \cite{nvidia_orin_nano_datasheet}. This eases the computational constraints, enabling the deployment of complex \ac{dl} models (such as \ac{tcn}s) that would be infeasible on \ac{mcu} hardware. The critical research question, therefore, is whether the increase in power consumption is justified by a proportional gain in estimation accuracy and latency reduction.
-
+By deploying on this platform, the research shifts from theoretical estimates to physical measurement. The core objectives becomes identifying the optimal configuration for targeted hardware, adapting model architecture and power budgets to achieve "good enough" \ac{soh} accuracy at the lowest empirical energy cost.
 
     % 4.3
 \subsection{Precision Trade-offs: FP32, INT8, and the cost of accuracy}
-    % |
 The deployment of \ac{ml} to edge architectures provides critical data security and latency benefits, but is fundamentally limited by memory-constraint. By default, \ac{dl} models are trained using \ac{fp32} formats however, a strong consensus in the literature indicates that \ac{fp32} is heavily over-parametrised for inference tasks \cite{gholami_survey_2021, hubara_quantized_2017}. \\
-Consequently, quantisation of floating-point values to lower-bit integer representations is a necessary precondition for edge deployment \cite{tong_enhancing_2026, gholami_survey_2021}. Among the available formats, \ac{int8} has emerged as the industry standard, the optimal balance between memory efficiency, accuracy retention and hardware acceleration \cite{hasanpour_survey_2026}. While recent studies have explored 8-bit floating-point formats, Baalen et al. \cite{baalen_fp8_2023} shows that \ac{int8} inference remains 2 to 8 times more efficient than its \ac{fp32} counterpart, and significantly outperforms FP8 in both area and energy usage.\\
+Consequently, quantisation of floating-point values to lower-bit integer representations is a necessary precondition for edge deployment \cite{tong_enhancing_2026, gholami_survey_2021}. Among the available formats, \ac{int8} has emerged as the industry standard, the optimal balance between memory efficiency, accuracy retention and hardware acceleration \cite{hasanpour_survey_2026, noauthor_nvidia_nodate}. While recent studies have explored 8-bit floating-point formats, Baalen et al. \cite{baalen_fp8_2023} shows that \ac{int8} inference remains 2 to 8 times more efficient than its \ac{fp32} counterpart, and significantly outperforms FP8 in both area and energy usage.\\
 The methodology of quantisation itself heavily dictates hardware performance. Hasanpour et al. note that uniform affine quantization remains the dominant mapping while non-linear or logarithmic quantisation might theoretically better match data distributions, they suffer from complex implementation and poor hardware support \cite{hasanpour_survey_2026, gholami_survey_2021}. Additionally, the timing of quantisation plays a significant role in accuracy retention. \ac{ptq} is computationally lightweight but frequently introduces unacceptable accuracy degradation \cite{hasanpour_survey_2026, tong_enhancing_2026}. Alternatively, \ac{qat} allows the model to adapt to quantisation noise during the training phase enabling accuracy retention, though adapting this dynamically on edge devices remains a security and computational challenge \cite{tong_enhancing_2026}.\\
 Implementation of these quantisation schemes to battery state estimation introduces significant vulnerabilities as \ac{soh} degradation is a subtle, long-term time-series trend. If the degradation features fall outside the resolution of a uniform \ac{int8} quantisation bin, the model risks catastrophic information loss. Therefore, systematically evaluating how temporal models navigate the trade-off between \ac{ptq}/\ac{qat} accuracy loss and \ac{fp32}/\ac{fp16}/\ac{int8} energy efficiency forms a primary objective of this study.
 
-
     % 4.4
 \subsection{Power, Energy and Resource Measurement on NVIDIA Jetson}
-    % |
 Transitioning towards energy-aware edge computing requires robust empirical profiling however, accurately quantifying the power consumption of embedded hardware remains a methodological challenge \cite{shalavi_energy_2022}. Software-based power estimation, such as \ac{pmc} models, have been application specific and require extensive feature engineering to achieve sufficient accuracy \cite{song_simplified_2013}. Alternatively, relying on on-chip hardware sensors introduces uncertainty and reliability concerns. As Fahad et al. \cite{fahad_comparative_2019} demonstrates, dynamic energy profiles generated by internal \ac{cpu}/\ac{gpu} sensors can deviate from external ground-truth metrics by 8\% to 73\%, indeterminate whether the primary energy cost is arithmetic computation or memory transfers. \\
-Profiling on the NVIDIA Jetson Orin introduces platform-specific complexities, Unlike discrete data-centre \ac{gpu}s, the Jetson not support the standard NVIDIA Management Library (NVML) \cite{noauthor_nvidia_nodate}. Power telemetry must instead be polled via \texttt{sysfs} nodes or the \texttt{tegrastats} utility \cite{aslan_study_2022, noauthor_power_2023}. Yet, these raw sensor readings are noisy, exhibiting non-physical, jagged spikes due to low temporal resolution and internal hardware quantisation \cite{aslan_study_2022}. This necessitates signal processing of the raw sensor data, such as moving average filter, to extract realistic dynamic profiles. \\
-Further research by Shalavi et al. \cite{shalavi_energy_2022}, conducts a rigorous external-meter validation across the Jetson hardware family, unrevealing that built-in sensors (e.g. INA3221) deviate from the ground-truth by up to 50\% due to unmonitored board-level losses. To resolve this, they derived linear regression models to calibrate internal readings (e.g. adjusting Orin readings via. $1.02x + 3115.39$ \si{\milli \watt}). By applying this calibration technique, measurement error is successfully reduced to $\pm 3\%$.\\
+Profiling on the NVIDIA Jetson Orin introduces platform-specific complexities, Unlike discrete data-centre \ac{gpu}s, the Jetson not support the standard NVIDIA Management Library (NVML) \cite{nvidia_nvml}. Power telemetry must instead be polled via \texttt{sysfs} nodes or the \texttt{tegrastats} utility \cite{aslan_study_2022, noauthor_power_2023}. Yet, these raw sensor readings are noisy, exhibiting non-physical, jagged spikes due to low temporal resolution and internal hardware quantisation \cite{aslan_study_2022}. This necessitates signal processing of the raw sensor data, such as moving average filter, to extract realistic dynamic profiles. \\
+Further research by Shalavi et al. \cite{shalavi_accurate_2023}, conducts a rigorous external-meter validation across the Jetson hardware family, unrevealing that built-in sensors (e.g. INA3221) deviate from the ground-truth by up to 50\% due to unmonitored board-level losses. To resolve this, they derived linear regression models to calibrate internal readings (e.g. adjusting Orin readings via. $1.02x + 3115.39$ \si{\milli \watt}). By applying this calibration technique, measurement error is successfully reduced to $\pm 3\%$.\\
 For deployment of \ac{nn}s on Jetson hardware, Holly et al. \cite{holly_profiling_2020} demonstrated that power draw remains relatively constant across varying model layers. Instead, the variance in total energy consumption is driven almost entirely by latency but manipulation of hardware constraints via \ac{dvfs} and power modes yields non-trivial optimums. Maximising \ac{gpu} frequency severely increases power but drastically cuts latency, creating complex accuracy-latency-energy trade-offs \cite{holly_profiling_2020}.\\
 Hence, this research leverages calibrated \texttt{tegrastats} metrics to systematically evaluate how different temporal \ac{soh} architectures and quantisation precisions interact with Jetson Orin power modes, identifying the optimal configuration for real-world \ac{bms} deployment.
 
@@ -114,4 +131,21 @@ Hence, this research leverages calibrated \texttt{tegrastats} metrics to systema
 %                       section 5. 
 %                      
 \section{Summary of Gaps and Research Questions}
+\label{sec:research_Qs}
 %==============================================================
+
+
+The literature demonstrates a clear evolution in battery health estimation, from traditional model-based approaches (e.g. \ac{ekf}) to highly accurate by computationally heavy \ac{dl} architectures (e.g. \ac{lstm}, \ac{gru}, \ac{tcn}). Simultaneously, works utilising datasets like Lu et al. \cite{lu_battery_2022} highlight that these models must be robust enough to handle the stochastic, non-linear degradation patterns seen in real-world application. \\
+To manage the computational burden of these models at the edge, the computing paradigm is shifting towards "Cognitive Edge Computing" \cite{wang_cognitive_2025}, which proposes deploying complex \ac{ai} directly onto edge accelerators (such as the NVIDIA Jetson series) rather than dependency on the cloud. Additionally, software-level toolchains, such as NVIDIA TensorRT \cite{noauthor_nvidia_nodate}, enables the explicit compression and acceleration of these networks for deployment. \\
+Yet, a fundamental gap remains in the literature regarding the intersection of these domains. While algorithmic "Green AI" techniques have been proposed \cite{kumar_towards_2025}, there is an absence of rigorous empirical profiling that co-optimises \ac{dl} \ac{soh} models with physical edge hardware. It remains unclear how different sequence architectures trade off predictive accuracy for energy consumption when subjected to hardware constraints, lower-precision quantisation, and stochastic battery datasets.\\
+To address this gap, this dissertation poses the following primary research questions
+
+\begin{enumerate}
+    \item \textbf{Architectural Efficiency:} How do different temporal architectures, specifically canonical \ac{rnn}s (\ac{lstm}, \ac{gru}), pure convolutional models (\ac{tcn}), and hybrid constructs (\ac{cnn}-\ac{lstm}, \ac{cnn}-\ac{gru}),  compare in terms of \ac{soh} prediction accuracy and parameter efficiency when trained on highly variable, uncertain degradation datasets?
+
+    \item \textbf{Empirical Edge Profiling:} When deployed on \ac{gpu}-class edge device (NVIDIA Jetson Orin Nano), what are the empirical latency, memory footprint, and physical power consumption profiles of these architectures under constrained power modes?
+
+    \item \textbf{Precision and Quantisation Implication:} How resilient are these temporal models to \ac{ptq} vs. \ac{qat} (\ac{fp32}, \ac{fp16}, \ac{int8}). Specifically does the quantisation result in catastrophic information loss, and how does this affect the ultimate resources-to-accuracy trade-off?
+\end{enumerate}
+
+By answering these questions, this study aims to move beyond theoretical algorithmic efficiency, establishing a practical, hardware-validated framework for deploying sustainable "Green AI" in next-generation Battery Management Systems.

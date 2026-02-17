@@ -8,20 +8,23 @@
 %==============================================================
 %                        section 1. 
 %       Problem Identification & Research Questions
-\section{Research Questions}
+\section{Introduction \& Methodology Outline}
+\label{sec:meth_framework}
 %==============================================================
+To address the research question proposed in Section \ref{sec:research_Qs}, this study employs a three-phase experimental framework.
 
-% -------------------------------------------------Research Q's
-\begin{enumerate}[label=\textbf{RQ\arabic*.}]
-    \item % Point 1.
-    How do different temporal Deep Learning architectures (LSTM/GRU, CNN-LSTM/GRU, TCN) compare in SOH accuracy.
+\begin{enumerate}[label={\emph{Phase} \arabic*}]
+    \item \textbf{Host-PC Training and Quantisation:}\\ 
+    High-fidelity baseline models are developed and trained on a high-performance host environment using the PyTorch framework. This phase will include dataset pre-processing, temporal model training (\ac{lstm}, \ac{gru}, \ac{tcn} and \ac{cnn} hybrids), as well as precision scaling (including \ac{qat}) before exporting teh architectures to an interpretable ONNX format. 
+
+    \item \textbf{Edge Deployment \& Hardware Profiling:}\\
+    ONNX models are deployed to an NVIDIA Jetson Orin (4GB). Using NVIDIA TensorRT, the models are executed under strictly constrained hardware power modes while dynamic telemetry (latency, memory footprint, and power consumption) is polled via on-board hardware sensors.
+
+    \item \textbf{Analytical Evaluation Phase:}\\
+    Quantitative data generated from the edge device is analysed against the baseline predictive accuracy, establishing a rigorous trade-off profile between SOH predictive fidelity and edge-energy consumption.
     
-    \item % Point 2.
-    How does quantisation (FP32/FP16/INT8) affect accuracy, latency, hardware utilisation and energy consumption on the Nvidia Jetson Orin.
-    
-    \item % Point 3.
-    What accuracy-latency-energy trade-offs are achievable for SOH estimation on constrained, edge-class hardware.
 \end{enumerate}
+
 
 
 
@@ -29,42 +32,31 @@
 %==============================================================
 %                        section 2. 
 %                 Data and Preprocessing
-\section{Data and Preprocessing}
+\section{Dataset Acquisition and Preprocessing}
 %==============================================================
-\subsection{Data Source}
-% Dataset name
-%   - Cell Chemistry
-%   - Sampling Rate
-%   - Operating Conditions (Lab vs. Realisitc cycles, C-rate) 
-%   - Number of Cells / Cycles
+To ensure the \ac{dl} models are evaluated against realistic, non-linear degradation effects, the benchmark dataset by Lu et al. \cite{lu_battery_2022} was selected. This dataset comprises 77 nominally identical high-energy 18650 lithium-ion batteries. Crucially, it steps beyond standard constant-current constant-voltage (\ac{cccv}) laboratory protocols; 55 of the cells were cycled under arbitrary, uncertain future conditions with randomised charge currents obeying a uniform distribution (1C, 2C, 3C) changing every five cycles. This stochastic variation induces heavy distribution shifts, providing a rigorous test for the sequence models.
 
-\subsection{SOH Definition}
-% How do I define SOH / Capacity label per sample or sequency
-
-\subsection{Preprocessing Pipeline}
-%   - Extract Excel to Parquets
-%   - 
-%
+\subsection{Feature Extraction: The $Q(v)$ Curve}
 
 
 %==============================================================
 %                        section 3. 
 %                 Data and Preprocessing
-\section{Machining Learning Models and Hyperparameters}
+\section{Model Architectures \& Host-PC Training}
 %==============================================================
 
 
 %==============================================================
 %                        section 4. 
 %                 Data and Preprocessing
-\section{Model Training and Evaluation}
+\section{Precision Scaling \& Quantisation}
 %==============================================================
 
 
 %==============================================================
 %                        section 5. 
 %                     Edge Deployment
-\section{Edge Deployment}
+\section{Edge Deployment \& Hardware Profiling}
 %==============================================================
 
 
@@ -73,5 +65,5 @@
 %==============================================================
 %                        section 6. 
 %             Evaluation Approach and Metrics 
-\section{Edge Evaluation and Key Metrics}
+\section{Evaluation Metrics}
 %==============================================================
